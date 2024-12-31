@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>WBT Development Time Estimator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            line-height: 1.6;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        form {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea,
+        button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .toast {
+            visibility: hidden;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            animation: fadeInOut 3s;
+        }
+
+        .toast.show {
+            visibility: visible;
+        }
+
+        @keyframes fadeInOut {
+
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            10%,
+            90% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Development Estimation Wizard</h1>
+
+    <form id="estimationForm">
+        <!-- Question 1 -->
+        <label for="length">Length of WBT (in minutes):</label>
+        <input type="number" id="length" min="0" placeholder="Enter minutes">
+
+        <!-- Question 2 -->
+        <label for="mobile">Will the WBT be mobile responsive?</label>
+        <select id="mobile">
+            <option value="0.5">Yes</option>
+            <option value="0">No</option>
+            <option value="0.5">I don’t know</option>
+        </select>
+
+        <label for="animations">Will animations be included?</label>
+        <input type="checkbox" id="animations" value="10">
+
+        <label>Will the course include audio narration?</label>
+        <label><input type="radio" name="audio" value="15"> Yes</label>
+        <label><input type="radio" name="audio" value="0" checked> No</label>
+
+        <!-- Range Slider -->
+        <label for="complexity">Complexity level (1-5):</label>
+        <input type="range" id="complexity" min="1" max="5" value="3">
+
+        <!-- Buttons -->
+        <button type="button" onclick="calculateTime()">Calculate Development Time</button>
+
+        <button type="reset" onclick="clearFormToast(); clearResults()">Clear Form</button>
+    </form>
+
+    <!-- Results Section -->
+    <h2>Results</h2>
+    <pre id="results">No calculations yet.</pre>
+    <button type="button" onclick="copyResults()">Copy to Clipboard</button>
+    <button type="button" onclick="emailResults()">Email Results</button>
+
+    <!-- Toast Notifications -->
+    <div id="copyResultsToast" class="toast">Results copied to clipboard!</div>
+
+    <div id="clearFormToast" class="toast" onclick="clearResults()">Form cleared!</div>
+
+    <script>
+        function clearFormToast() {
+            const clearFormToast = document.getElementById('clearFormToast');
+            clearFormToast.classList.add('show');
+            setTimeout(() => clearFormToast.classList.remove('show'), 3000);
+        }
+
+        function calculateTime() {
+            const length = parseInt(document.getElementById('length').value) || 0;
+            const mobileFactor = parseFloat(document.getElementById('mobile').value);
+            const animations = document.getElementById('animations').checked ? 10 : 0;
+            const audio = parseInt(document.querySelector('input[name="audio"]:checked').value);
+            const complexity = parseInt(document.getElementById('complexity').value);
+            
+            // Store calculations in an array
+            const calculations = [{
+                name: "Base Development Time",
+                value: (length / 15) * 20
+            },
+            {
+                name: "Mobile Responsive Adjustment",
+                value: ((length / 15) * 20) * mobileFactor
+            },
+            {
+                name: "Animations",
+                value: animations
+            },
+            {
+                name: "Audio Narration",
+                value: audio
+            },
+            {
+                name: "Complexity Adjustment",
+                value: complexity * 5
+            },
+            ];
+            // Calculate total time
+            const totalTime = calculations.reduce((acc, calc) => acc + calc.value, 0);
+
+            // Format and display results
+            const results = calculations
+                .map(calc => `${calc.name}: ${calc.value.toFixed(2)} hours`)
+                .join('\n');
+            document.getElementById('results').textContent = `${results}
+----------------------------------
+Total Development Time: ${totalTime.toFixed(2)} hours`;
+        }
+
+        function clearResults() {
+            document.getElementById('results').textContent = 'No calculations yet.';
+        }
+
+        function copyResults() {
+            const results = document.getElementById('results').textContent;
+            navigator.clipboard.writeText(results).then(() => {
+                const copyResultsToast = document.getElementById('copyResultsToast');
+                copyResultsToast.classList.add('show');
+                setTimeout(() => copyResultsToast.classList.remove('show'), 3000);
+            });
+        }
+
+        function emailResults() {
+            const results = document.getElementById('results').textContent;
+            const subject = encodeURIComponent('Development Estimation Results');
+            const body = encodeURIComponent(results);
+            const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
+            window.location.href = mailtoLink;
+        }
+    </script>
+</body>
+</html>
