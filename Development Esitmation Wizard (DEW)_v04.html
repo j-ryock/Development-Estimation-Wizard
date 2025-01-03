@@ -46,8 +46,13 @@
             border: none;
         }
 
-        button:hover {
+        button:not(.disabledButton):hover {
             background-color: #0056b3;
+        }
+
+        .disabledButton {
+            background-color: #ccc;
+            pointer-events: none;
         }
 
         .toast {
@@ -68,16 +73,8 @@
         }
 
         @keyframes fadeInOut {
-
-            0%,
-            100% {
-                opacity: 0;
-            }
-
-            10%,
-            90% {
-                opacity: 1;
-            }
+            0%, 100% {opacity: 0;}
+            10%, 90% {opacity: 1;}
         }
     </style>
 </head>
@@ -95,7 +92,7 @@
         <select id="mobile">
             <option value="0.5">Yes</option>
             <option value="0">No</option>
-            <option value="0.5">I don’t know</option>
+            <option value="0.5">I don&rsquo;t know</option>
         </select>
 
         <label for="animations">Will animations be included?</label>
@@ -110,36 +107,32 @@
         <input type="range" id="complexity" min="1" max="5" value="3">
 
         <!-- Buttons -->
-        <button type="button" onclick="calculateTime()">Calculate Development Time</button>
-
-        <button type="reset" onclick="clearFormToast(); clearResults()">Clear Form</button>
+        <button type="button"  id="calculateTimeBtn" onclick="calculateTime()">Calculate Development Time</button>
+        
+        <!-- "reset" resets the form, clearResults() clears text in results <pre>, clearFormToast() hides the toast -->
+        <button type="reset"  id="clearFormBtn" onclick="clearResults(); clearFormToast();">Clear Form</button>
+        
+        <!-- Results Section -->
+        <h2>Results</h2>
+        <pre id="results">No calculations yet.</pre>
+        <button type="button" id="copyBtn" class="disabledButton" onclick="copyResults()">Copy to Clipboard</button>
+        <button type="button"  id="emailBtn" class="disabledButton" onclick="emailResults()">Email Results</button>
+        
+        <!-- Toast Notifications -->
+        <div id="calculateTime" class="toast">Time calculated!</div>
+        <div id="clearFormToast" class="toast">Form cleared!</div>
+        <div id="copyResultsToast" class="toast">Results copied to clipboard!</div>
+        <div id="emailResultsToast" class="toast">Email generating...</div>
     </form>
 
-    <!-- Results Section -->
-    <h2>Results</h2>
-    <pre id="results">No calculations yet.</pre>
-    <button type="button" onclick="copyResults()">Copy to Clipboard</button>
-    <button type="button" onclick="emailResults()">Email Results</button>
-
-    <!-- Toast Notifications -->
-    <div id="copyResultsToast" class="toast">Results copied to clipboard!</div>
-
-    <div id="clearFormToast" class="toast" onclick="clearResults()">Form cleared!</div>
-
     <script>
-        function clearFormToast() {
-            const clearFormToast = document.getElementById('clearFormToast');
-            clearFormToast.classList.add('show');
-            setTimeout(() => clearFormToast.classList.remove('show'), 3000);
-        }
-
         function calculateTime() {
             const length = parseInt(document.getElementById('length').value) || 0;
             const mobileFactor = parseFloat(document.getElementById('mobile').value);
             const animations = document.getElementById('animations').checked ? 10 : 0;
             const audio = parseInt(document.querySelector('input[name="audio"]:checked').value);
             const complexity = parseInt(document.getElementById('complexity').value);
-            
+
             // Store calculations in an array
             const calculations = [{
                 name: "Base Development Time",
@@ -172,10 +165,27 @@
             document.getElementById('results').textContent = `${results}
 ----------------------------------
 Total Development Time: ${totalTime.toFixed(2)} hours`;
+
+            // Enable copy and email buttons
+            document.querySelector('#copyBtn').classList.remove('disabledButton');
+            document.querySelector('#emailBtn').classList.remove('disabledButton');
+            
+            // Show calculateTimeToast notification
+            const calculateTimeToast = document.getElementById('calculateTime');
+            calculateTimeToast.classList.add('show');
+            setTimeout(() => calculateTimeToast.classList.remove('show'), 3000);
         }
 
         function clearResults() {
             document.getElementById('results').textContent = 'No calculations yet.';
+            document.querySelector('#copyBtn').classList.add('disabledButton');
+            document.querySelector('#emailBtn').classList.add('disabledButton');
+        }
+
+        function clearFormToast() {
+            const clearFormToast = document.getElementById('clearFormToast');
+            clearFormToast.classList.add('show');
+            setTimeout(() => clearFormToast.classList.remove('show'), 3000);
         }
 
         function copyResults() {
@@ -193,7 +203,12 @@ Total Development Time: ${totalTime.toFixed(2)} hours`;
             const body = encodeURIComponent(results);
             const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
             window.location.href = mailtoLink;
-        }
+            
+            const emailResultsToast = document.getElementById('emailResultsToast');
+            emailResultsToast.classList.add('show');
+                setTimeout(() => emailResultsToast.classList.remove('show'), 3000);
+            }
     </script>
 </body>
+
 </html>
